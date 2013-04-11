@@ -1,0 +1,51 @@
+%link{rel:"stylesheet", type:"text/css", href:"/stylesheets/chosen.css"}
+
+%div.container
+  %h2 Masters
+
+  %h4= "Current round: #{current_round}"
+
+  %div
+    %em Turn This
+    %select{ "data-placeholder" => "Choose a Player...", class: "chzn-select", style: "width:350px;", tabindex: "2" }
+      %option{ value: ""}
+      - players.each do |player|
+        %option{ value: name(player) }= name(player)
+    %a#clear{ href: "#" } Clear Value
+
+  %table
+    %tr
+      %th Position
+      %th Name
+      %th Round total
+      %th Last recorded hole
+      %th Scorecard
+      %th Round History
+    - players.each do |player|
+      %tr.player{ style: "background-color: #{background(player)}" }
+        %td= position(player)
+        %td= name(player)
+        %td= player["today"]
+        %td= player["thru"].gsub("F", "18")
+        %td= player["total"]
+        %td= player["thruHistory"].split("|").join(", ")
+
+%script{src: "https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js", type: "text/javascript" }
+%script{src: "https://raw.github.com/harvesthq/chosen/master/chosen/chosen.jquery.min.js", type: "text/javascript" }
+:javascript
+  $(".chzn-select").chosen({no_results_text: "No results matched"});
+  $(".chzn-select").chosen().change(function() {
+    $('.container').find("tr.player").hide();
+    var data = this.value.split(" ");
+    var jo = $('.container').find("tr.player");
+    $.each(data, function(i, v){
+      jo = jo.filter("*:contains('"+v+"')");
+    });
+    jo.show();
+  });
+  $('#clear').click(function(){
+    $(".chzn-select").val('').trigger("liszt:updated");
+    $('.container').find("tr.player").show();
+  });
+
+

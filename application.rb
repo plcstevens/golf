@@ -1,14 +1,33 @@
-require "goliath"
-require "em-http"
-require "em-synchrony/em-http"
-require "erb"
-require "json"
+require 'tilt'
+require 'goliath'
+require 'em-http'
+require 'em-synchrony/em-http'
+require 'goliath/rack/templates'
+require 'json'
 
 class Hello < Goliath::API
-  API = "http://www.masters.com/en_US/xml/gen/homeScores/homeScores.json"
+  use Goliath::Rack::Render                 # auto-negotiate response format
+  use Goliath::Rack::Heartbeat              # respond to /status with 200, OK (monitoring, etc)
+
+  include Goliath::Rack::Templates          # render templated files from ./views
+
+  use(Rack::Static,                         # render static files from ./public
+      root: Goliath::Application.app_path("public"),
+      urls: ["/favicon.ico", '/stylesheets', '/javascripts', '/images'])
+
+  # API to read data from
+  API = "http://www.masters.com/en_US/xml/gen/scores/scores.low.json"
 
   def response(env)
-    [status, headers, body]
+    case env['PATH_INFO']
+      when /.+\.json/ then
+        [status, { "Content-Type" => "application/json"}, json]
+      when /.+\.css/ then
+        [status, { "Content-Type" => "stylesheet/css"}, css(env['PATH_INFO'])]
+      else
+        [status, headers, body]
+    end
+
   end
 
   private
@@ -20,11 +39,27 @@ class Hello < Goliath::API
     { "Content-Type" => "text/html" }
   end
 
-  def body
-    scores = JSON.parse(EM::HttpRequest.new(API).get.response)
-    players = scores["homeScores"]["player"]
+  def css path
 
-    ERB.new(File.read("view.html.erb")).result(binding)
+  end
+
+
+  def json
+    EM::HttpRequest.new(API).get.response
+  end
+
+  def body
+    response = JSON.parse(json)
+    current_round = response["data"]["currentRound"].to_i / 1000
+    players       = response["data"]["player"]
+
+    haml(
+        :index,
+         locals: {
+             current_round: current_round,
+             players: players
+         }
+    )
   end
 
   def position(player)
@@ -53,6 +88,10 @@ class Hello < Goliath::API
       end
 
     (holes.to_f / 18 * 100).round
+  end
+
+  def name(player)
+    "#{player['first']} #{player['last']}"
   end
 
   def background(player)

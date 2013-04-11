@@ -1,5 +1,7 @@
 source "https://rubygems.org"
 ruby "1.9.3"
+gem "tilt"
+gem "haml"
 gem "goliath"
 gem "em-http-request"
 gem "em-synchrony"
