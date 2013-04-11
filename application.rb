@@ -24,6 +24,8 @@ class Hello < Goliath::API
         [status, { "Content-Type" => "application/json"}, json]
       when /.+\.css/ then
         [status, { "Content-Type" => "stylesheet/css"}, css(env['PATH_INFO'])]
+      when /.+\.js/ then
+        [status, { "Content-Type" => "stylesheet/css"}, js(env['PATH_INFO'])]
       else
         [status, headers, body]
     end
@@ -39,7 +41,11 @@ class Hello < Goliath::API
     { "Content-Type" => "text/html" }
   end
 
-  def css path
+  def css(path)
+
+  end
+
+  def js(path)
 
   end
 
