@@ -3,8 +3,6 @@
 %div.container
   %h2 Masters
 
-  %h4= "Current round: #{current_round}"
-
   %div
     %em Turn This
     %select{ "data-placeholder" => "Choose a Player...", class: "chzn-select", style: "width:350px;", tabindex: "2" }
@@ -22,7 +20,7 @@
       %th Scorecard
       %th Round History
     - players.each do |player|
-      %tr.player{ style: "background-color: #{background(player)}" }
+      %tr.player
         %td= position(player)
         %td= name(player)
         %td= player["today"]

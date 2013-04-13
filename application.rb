@@ -22,10 +22,6 @@ class Hello < Goliath::API
     case env['PATH_INFO']
       when /.+\.json/ then
         [status, { "Content-Type" => "application/json"}, json]
-      when /.+\.css/ then
-        [status, { "Content-Type" => "stylesheet/css"}, css(env['PATH_INFO'])]
-      when /.+\.js/ then
-        [status, { "Content-Type" => "stylesheet/css"}, js(env['PATH_INFO'])]
       else
         [status, headers, body]
     end
@@ -41,28 +37,17 @@ class Hello < Goliath::API
     { "Content-Type" => "text/html" }
   end
 
-  def css(path)
-
-  end
-
-  def js(path)
-
-  end
-
-
   def json
     EM::HttpRequest.new(API).get.response
   end
 
   def body
     response = JSON.parse(json)
-    current_round = response["data"]["currentRound"].to_i / 1000
     players       = response["data"]["player"]
 
     haml(
         :index,
          locals: {
-             current_round: current_round,
              players: players
          }
     )
@@ -98,15 +83,5 @@ class Hello < Goliath::API
 
   def name(player)
     "#{player['first']} #{player['last']}"
-  end
-
-  def background(player)
-    number = player["pos"].gsub("T", "").to_i
-    number = 93 if number.zero?
-
-    green = (92 - number + 1).to_f / 92 * 255
-    red = 255 - green
-    
-    "rgb(#{red.round}, #{green.round}, 0)"
   end
 end
